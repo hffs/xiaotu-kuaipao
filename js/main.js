@@ -41,7 +41,7 @@
     }
     if (h === 'social') {
       XT.nav.reset('home');
-      XT.nav.go('social');
+      if (XT.socialEnabled) XT.nav.go('social');
       return;
     }
     if (h === 'levels') {
@@ -61,7 +61,7 @@
       try {
         var launch = wx.getLaunchOptionsSync() || {};
         var q = launch.query || {};
-        if (q.subject && (typeof location === 'undefined' || !location.hash)) {
+        if (XT.socialEnabled && q.subject && (typeof location === 'undefined' || !location.hash)) {
           XT.toast.show('好友分享了' + (XT.catalog[q.subject] ? XT.catalog[q.subject].name : '一关'));
         }
       } catch (e) {}

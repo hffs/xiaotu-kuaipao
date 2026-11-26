@@ -26,6 +26,9 @@
     isWeChat: typeof GameGlobal !== 'undefined' && !g.__XT_PREVIEW
   };
 
+  // 暂时关闭好友、分享和挑战。改成 true 即可恢复这些入口。
+  XT.socialEnabled = false;
+
   XT.runtime = { time: 0, page: null };
   XT.overlay = null;
   XT.banks = {};
@@ -445,6 +448,10 @@
     }
   };
 
+  function socialBlocked(screen) {
+    return !XT.socialEnabled && (screen === 'social' || screen === 'challenge');
+  }
+
   XT.nav = {
     stack: [],
     fresh: function () {
@@ -458,6 +465,7 @@
       this.stack = [{ screen: screen || 'home', params: params || {} }];
     },
     go: function (screen, params) {
+      if (socialBlocked(screen)) return;
       this.fresh();
       this.stack.push({ screen: screen, params: params || {} });
     },
@@ -466,6 +474,7 @@
       if (this.stack.length > 1) this.stack.pop();
     },
     replace: function (screen, params) {
+      if (socialBlocked(screen)) return;
       this.fresh();
       if (this.stack.length) this.stack.pop();
       this.stack.push({ screen: screen, params: params || {} });
@@ -650,6 +659,7 @@
 
   XT.share = {
     send: function (payload) {
+      if (!XT.socialEnabled) return;
       if (typeof wx !== 'undefined' && wx.shareAppMessage) {
         try {
           wx.shareAppMessage({

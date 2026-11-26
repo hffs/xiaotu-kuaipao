@@ -23,6 +23,13 @@
       var sub = XT.catalog[p.subject];
       var level = XT.levelById(p.subject, p.levelId);
       var self = this;
+      var social = !!XT.socialEnabled;
+      var titleY = social ? 500 : (p.won ? 640 : 700);
+      var subY = social ? 560 : (p.won ? 708 : 768);
+      var starY = social ? 640 : 800;
+      var noteY = social ? (p.won ? 710 : 640) : (p.won ? 880 : 860);
+      var playY = social ? (p.won ? 780 : 760) : 980;
+      var backY = social ? 1160 : (playY + 136);
       ctx.fillStyle = sub.soft;
       ctx.fillRect(0, 0, XT.W, XT.H);
       XT.draw.rabbit(ctx, 375, 430, {
@@ -30,29 +37,29 @@
         time: XT.runtime.time,
         mood: p.won ? 'cheer' : 'sad'
       });
-      XT.ui.text(ctx, p.won ? '兔兔到达终点啦' : '再陪兔兔跑一次', XT.W / 2, 500, {
+      XT.ui.text(ctx, p.won ? '兔兔到达终点啦' : '再陪兔兔跑一次', XT.W / 2, titleY, {
         size: 48, align: 'center', weight: '800'
       });
-      XT.ui.text(ctx, sub.name + ' · ' + level.title, XT.W / 2, 560, {
+      XT.ui.text(ctx, sub.name + ' · ' + level.title, XT.W / 2, subY, {
         size: 28, align: 'center', color: XT.C.soft, weight: '700'
       });
       if (p.won) {
         var i, appear;
         for (i = 0; i < 3; i++) {
           appear = Math.min(1, Math.max(0, (self.t - i * 0.12) / 0.22));
-          XT.draw.star(ctx, 300 + i * 76, 640, 16 + appear * 14, i < p.stars);
+          XT.draw.star(ctx, 300 + i * 76, starY, 16 + appear * 14, i < p.stars);
         }
-        XT.ui.text(ctx, p.mistakes === 0 ? '一次都没答错' : ('答错 ' + p.mistakes + ' 次，还剩 ' + p.lives + ' 颗心'), XT.W / 2, 710, {
+        XT.ui.text(ctx, p.mistakes === 0 ? '一次都没答错' : ('答错 ' + p.mistakes + ' 次，还剩 ' + p.lives + ' 颗心'), XT.W / 2, noteY, {
           size: 28, align: 'center', color: XT.C.soft, weight: '700'
         });
       } else {
-        XT.ui.text(ctx, '小心心用完了，兔兔还在半路', XT.W / 2, 640, {
+        XT.ui.text(ctx, '小心心用完了，兔兔还在半路', XT.W / 2, noteY, {
           size: 30, align: 'center', color: XT.C.soft, weight: '700'
         });
       }
 
       XT.ui.button(ctx, {
-        id: 'replay', x: 40, y: p.won ? 780 : 760, w: p.won ? 320 : 670, h: 110,
+        id: 'replay', x: 40, y: playY, w: p.won ? 320 : 670, h: 110,
         label: '再玩一次', fill: '#FFFFFF', edge: sub.edge, size: 36,
         onTap: function () {
           XT.nav.replace('track', { subject: p.subject, level: p.levelId });
@@ -60,7 +67,7 @@
       });
       if (p.won) {
         XT.ui.button(ctx, {
-          id: 'next', x: 390, y: 780, w: 320, h: 110,
+          id: 'next', x: 390, y: playY, w: 320, h: 110,
           label: '下一关', fill: sub.color, edge: sub.edge, textColor: '#FFFFFF', size: 36,
           onTap: function () {
             var next = XT.nextLevel(p.subject, p.levelId);
@@ -75,27 +82,31 @@
             XT.nav.replace('track', { subject: p.subject, level: next.id });
           }
         });
+        if (social) {
+          XT.ui.button(ctx, {
+            id: 'share', x: 40, y: 916, w: 320, h: 100,
+            label: '分享成绩', fill: '#FFE38A', edge: '#E6B423', size: 32,
+            onTap: function () { XT.openShare(p, sub, level); }
+          });
+        }
+      }
+      if (social) {
         XT.ui.button(ctx, {
-          id: 'share', x: 40, y: 916, w: 320, h: 100,
-          label: '分享成绩', fill: '#FFE38A', edge: '#E6B423', size: 32,
-          onTap: function () { XT.openShare(p, sub, level); }
+          id: 'challenge', x: p.won ? 390 : 40, y: p.won ? 916 : 896, w: p.won ? 320 : 670, h: 100,
+          label: '向好友挑战', fill: '#A9E2FF', edge: '#6BB6E0', size: 32,
+          onTap: function () {
+            if (!p.question) return;
+            XT.overlay = {
+              type: 'challenge',
+              subject: p.subject,
+              levelTitle: sub.name + ' · ' + level.title,
+              prompt: p.question.prompt
+            };
+          }
         });
       }
       XT.ui.button(ctx, {
-        id: 'challenge', x: p.won ? 390 : 40, y: p.won ? 916 : 896, w: p.won ? 320 : 670, h: 100,
-        label: '向好友挑战', fill: '#A9E2FF', edge: '#6BB6E0', size: 32,
-        onTap: function () {
-          if (!p.question) return;
-          XT.overlay = {
-            type: 'challenge',
-            subject: p.subject,
-            levelTitle: sub.name + ' · ' + level.title,
-            prompt: p.question.prompt
-          };
-        }
-      });
-      XT.ui.button(ctx, {
-        id: 'back-levels', x: 40, y: 1160, w: 670, h: 110,
+        id: 'back-levels', x: 40, y: backY, w: 670, h: 110,
         label: '返回关卡', fill: '#FFFFFF', edge: '#E6D3BE', size: 36,
         onTap: function () { XT.nav.back(); }
       });
@@ -103,6 +114,7 @@
   };
 
   XT.openShare = function (p, sub, level) {
+    if (!XT.socialEnabled) return;
     var text = '我在「小兔快跑」完成了' + sub.name + '「' + level.title + '」，得到 ' + p.stars + ' 颗星。一起来跑吧！';
     XT.overlay = {
       type: 'share',

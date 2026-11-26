@@ -57,13 +57,13 @@
   }
 
   function tileMetrics(h) {
-    var badgeR = h >= 300 ? 40 : (h >= 270 ? 36 : 32);
-    var nameSize = h >= 300 ? 42 : 40;
-    var tagSize = 24;
-    var statSize = h >= 300 ? 28 : 26;
-    var g1 = h >= 300 ? 18 : 14;
-    var g2 = 10;
-    var g3 = 12;
+    var badgeR = h >= 360 ? 44 : (h >= 300 ? 40 : (h >= 270 ? 36 : 32));
+    var nameSize = h >= 360 ? 44 : (h >= 300 ? 42 : 40);
+    var tagSize = h >= 360 ? 26 : 24;
+    var statSize = h >= 360 ? 30 : (h >= 300 ? 28 : 26);
+    var g1 = h >= 360 ? 28 : (h >= 300 ? 18 : 14);
+    var g2 = h >= 360 ? 14 : 10;
+    var g3 = h >= 360 ? 20 : 12;
     var block = badgeR * 2 + g1 + nameSize + g2 + tagSize + g3 + statSize;
     var top = (h - block) / 2;
     var badgeY;
@@ -223,9 +223,10 @@
       var pad = 28;
       var gap = 18;
       var shadow = 10;
-      var friendsH = 120;
-      var friendsGap = 16;
-      var bottom = 22;
+      var social = !!XT.socialEnabled;
+      var friendsH = social ? 120 : 0;
+      var friendsGap = social ? 16 : 0;
+      var bottom = social ? 22 : 28;
       var gridTop = 524;
       var minTile = 240;
       var maxTile = 420;
@@ -348,7 +349,7 @@
         ctx.fillRect(0, gridBottom - 36, XT.W, 36);
       }
 
-      friendsBar(ctx, pad, friendsY, XT.W - pad * 2, friendsH);
+      if (social) friendsBar(ctx, pad, friendsY, XT.W - pad * 2, friendsH);
     }
   };
 })(typeof GameGlobal !== 'undefined' ? GameGlobal : (typeof window !== 'undefined' ? window : this));
