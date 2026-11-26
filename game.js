@@ -1,4 +1,5 @@
 require('./js/core.js');
+require('./js/voice.js');
 require('./js/draw.js');
 require('./js/icons.js');
 require('./js/widgets.js');

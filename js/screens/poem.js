@@ -38,6 +38,7 @@
       this.options = [];
       this.saved = false;
       this.chimed = false;
+      if (XT.voice) XT.voice.stop();
       if (params && typeof params.debugStep === 'number') {
         if (params.debugStep >= 4) this.toRecap();
         else this.beginStop(params.debugStep, true);
@@ -82,6 +83,7 @@
       }
     },
     update: function (dt) {
+      if (this.phase !== 'recap' && XT.voice && XT.voice.playing) XT.voice.stop();
       this.shake = Math.max(0, this.shake - dt * 2.2);
       this.light += (this.lightTo - this.light) * Math.min(1, dt * 2.4);
       var moving = Math.abs(this.tx - this.rx) > 2 || Math.abs(this.ty - this.ry) > 2;
@@ -157,15 +159,31 @@
         });
       } else if (this.phase === 'recap') {
         this.drawPoem(ctx, story, true);
+        var clip = 'audio/poems/' + story.id + '.mp3';
+        var playing = XT.voice && XT.voice.isPlaying(clip);
+        if (playing) {
+          ctx.fillStyle = 'rgba(255, 252, 246, 0.94)';
+          XT.ui.roundRect(ctx, 250, 966, 250, 48, 24);
+          ctx.fill();
+          XT.ui.text(ctx, '正在读这首诗', XT.W / 2, 990, {
+            size: 26, align: 'center', color: '#2E8FD6', weight: '800'
+          });
+        }
         XT.ui.button(ctx, {
           id: 'poem-chime', x: 48, y: 1040, w: 310, h: 110,
-          label: '听一听', fill: '#FFFFFF', edge: '#E6D3BE', size: 36,
-          onTap: function () { XT.sfx.chime(); }
+          label: playing ? '停一停' : '听一听',
+          fill: playing ? '#C8F0FF' : '#FFFFFF',
+          edge: playing ? '#6BB6E0' : '#E6D3BE',
+          size: 36,
+          onTap: function () { if (XT.voice) XT.voice.toggle(clip); }
         });
         XT.ui.button(ctx, {
           id: 'poem-home', x: 380, y: 1040, w: 322, h: 110,
           label: '我学会啦', fill: '#FFE38A', edge: '#E6B423', size: 36,
-          onTap: function () { XT.nav.reset('home'); }
+          onTap: function () {
+            if (XT.voice) XT.voice.stop();
+            XT.nav.reset('home');
+          }
         });
       } else if (stop && (this.phase === 'ask' || this.phase === 'walk')) {
         this.drawAsk(ctx, stop);
@@ -188,8 +206,10 @@
       }
 
       XT.ui.backButton(ctx, 28, function () {
-        if (self.phase === 'intro' || self.phase === 'recap') XT.nav.back();
-        else XT.overlay = { type: 'leave' };
+        if (self.phase === 'intro' || self.phase === 'recap') {
+          if (XT.voice) XT.voice.stop();
+          XT.nav.back();
+        } else XT.overlay = { type: 'leave' };
       });
       ctx.restore();
     },

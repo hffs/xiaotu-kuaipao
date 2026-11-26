@@ -88,6 +88,63 @@
         fallbackCopy(text, opt);
       }
     },
+    createInnerAudioContext: function () {
+      var audio = new Audio();
+      var ended = [];
+      var errored = [];
+      var api = {
+        src: '',
+        autoplay: false,
+        loop: false,
+        volume: 1,
+        obeyMuteSwitch: true,
+        play: function () {
+          var src = resolveAudioSrc(api.src);
+          if (!src) return;
+          if (audio.getAttribute('data-raw') !== api.src) {
+            audio.src = src;
+            audio.setAttribute('data-raw', api.src);
+          }
+          audio.volume = api.volume == null ? 1 : api.volume;
+          audio.loop = !!api.loop;
+          if (audio.ended) {
+            try { audio.currentTime = 0; } catch (e) {}
+          }
+          var p = audio.play();
+          if (p && p.catch) {
+            p.catch(function () {
+              var i;
+              for (i = 0; i < errored.length; i++) errored[i]({ errMsg: 'play fail' });
+            });
+          }
+        },
+        stop: function () {
+          audio.pause();
+          try { audio.currentTime = 0; } catch (e) {}
+        },
+        pause: function () { audio.pause(); },
+        onEnded: function (fn) { if (fn) ended.push(fn); },
+        onError: function (fn) { if (fn) errored.push(fn); },
+        onStop: function () {},
+        onCanplay: function () {},
+        destroy: function () {
+          audio.pause();
+          audio.removeAttribute('src');
+          try { audio.load(); } catch (e2) {}
+        },
+        _node: audio
+      };
+      audio.preload = 'auto';
+      audio.addEventListener('ended', function () {
+        var i;
+        for (i = 0; i < ended.length; i++) ended[i]();
+      });
+      audio.addEventListener('error', function () {
+        var i;
+        for (i = 0; i < errored.length; i++) errored[i]({ errMsg: 'audio error' });
+      });
+      return api;
+    },
     shareAppMessage: function (opt) {
       window.__XT_SHARES = window.__XT_SHARES || [];
       window.__XT_SHARES.push(opt || {});
@@ -97,6 +154,12 @@
       if (window.XT && XT.toast) XT.toast.show(opt.title || '');
     }
   };
+
+  function resolveAudioSrc(src) {
+    if (!src) return '';
+    if (/^https?:/i.test(src) || src.indexOf('data:') === 0 || src.charAt(0) === '/') return src;
+    return new URL('../' + src, window.location.href).href;
+  }
 
   function fallbackCopy(text, opt) {
     var area = document.createElement('textarea');
