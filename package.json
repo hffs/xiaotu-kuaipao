@@ -1,0 +1,10 @@
+{
+  "name": "xiaotu-kuaipao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "小兔快跑 · 面向 6-8 岁的微信小游戏",
+  "scripts": {
+    "start": "python3 -m http.server 8647",
+    "preview": "python3 -m http.server 8647"
+  }
+}
