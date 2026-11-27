@@ -18,6 +18,7 @@
     var o = XT.overlay;
     var x, y, w;
     if (!o) return;
+    if (!XT.socialEnabled && (o.type === 'share' || o.type === 'challenge')) return;
     scrim(ctx);
     x = 48;
     w = XT.W - 96;
